@@ -1,7 +1,7 @@
-name: Build Lambda Package with Snowflake Connector
+name: Build Lambda Package with Snowflake Connector (Amazon Linux)
 
 on:
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,18 +11,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9  # Match your Lambda runtime
-
-      - name: Install Snowflake dependencies
+      - name: Build Lambda Package in Amazon Linux Docker
         run: |
-          mkdir -p package
-          pip install snowflake-connector-python -t package
-          cp lambda_function.py package/
-          cd package
+          mkdir -p lambda_build
+          docker run --rm -v "$PWD/lambda_build":/var/task amazonlinux:2 \
+            bash -c "
+              yum install -y python3 python3-pip zip &&
+              pip3 install snowflake-connector-python -t /var/task &&
+              cp /var/task/snowflake/__init__.py /var/task 2>/dev/null || true
+            "
+          cp lambda_function.py lambda_build/
+          cd lambda_build
           zip -r ../snowflake_lambda.zip .
+
+      - name: Inspect ZIP Contents
+        run: unzip -l snowflake_lambda.zip
 
       - name: Upload Lambda Package
         uses: actions/upload-artifact@v4
