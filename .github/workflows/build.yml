@@ -25,7 +25,7 @@ jobs:
           zip -r ../lambda_function.zip .
 
       - name: Upload Lambda Package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lambda_function
           path: lambda_function.zip
