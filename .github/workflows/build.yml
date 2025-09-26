@@ -22,10 +22,10 @@ jobs:
           pip install snowflake-connector-python -t package
           cp lambda_function.py package/
           cd package
-          zip -r ../lambda_function.zip .
+          zip -r ../snowflake_lambda.zip .
 
       - name: Upload Lambda Package
         uses: actions/upload-artifact@v4
         with:
-          name: snowflake_lambda
+          name: snowflake_lambda.zip
           path: snowflake_lambda.zip
