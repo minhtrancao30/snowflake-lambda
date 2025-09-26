@@ -11,23 +11,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Lambda Package in Amazon Linux Docker
+      - name: Prepare build folder
         run: |
-          mkdir -p lambda_build
+          rm -rf lambda_build
+          mkdir lambda_build
+
+      - name: Install Snowflake Connector in Docker (Amazon Linux 2)
+        run: |
           docker run --rm -v "$PWD/lambda_build":/var/task amazonlinux:2 \
             bash -c "
               yum install -y python3 python3-pip zip &&
               pip3 install snowflake-connector-python -t /var/task &&
+              # Fix for missing __init__.py if needed
               cp /var/task/snowflake/__init__.py /var/task 2>/dev/null || true
             "
-          cp lambda_function.py lambda_build/
-          cd lambda_build
-          zip -r ../snowflake_lambda.zip .
 
-      - name: Inspect ZIP Contents
+      - name: Copy lambda_function.py to build folder
+        run: cp lambda_function.py lambda_build/
+
+      - name: Create ZIP package with correct structure
+        run: |
+          cd lambda_build
+          zip -r ../snowflake_lambda.zip ./*
+
+      - name: Inspect ZIP contents
         run: unzip -l snowflake_lambda.zip
 
-      - name: Upload Lambda Package
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
           name: snowflake_lambda.zip
