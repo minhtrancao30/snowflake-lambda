@@ -1,0 +1,31 @@
+name: Build Lambda Package with Snowflake Connector
+
+on:
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9  # Match your Lambda runtime
+
+      - name: Install Snowflake dependencies
+        run: |
+          mkdir -p package
+          pip install snowflake-connector-python -t package
+          cp lambda_function.py package/
+          cd package
+          zip -r ../lambda_function.zip .
+
+      - name: Upload Lambda Package
+        uses: actions/upload-artifact@v3
+        with:
+          name: lambda_function
+          path: lambda_function.zip
